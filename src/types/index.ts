@@ -1,0 +1,12 @@
+export type UserRole = 'Borrower' | 'Lender' | 'Faculty' | 'Admin'
+export type BorrowingStatus = 'Pending' | 'Borrowed' | 'Returned' | 'Cancelled'
+export type EquipmentStatus = 'Available' | 'Pending' | 'Borrowed' | 'Unavailable'
+export type EquipmentCondition = 'New' | 'Good' | 'Fair' | 'Damaged'
+export type NotificationType =
+  | 'RequestCreated'
+  | 'RequestApproved'
+  | 'RequestRejected'
+  | 'DueSoon'
+  | 'Overdue'
+  | 'ReturnRecorded'
+  | 'DisputeFiled'
