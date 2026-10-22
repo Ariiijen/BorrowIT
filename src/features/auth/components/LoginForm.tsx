@@ -40,12 +40,12 @@ export function LoginForm() {
   return (
     <div>
       <GoogleButton />
-      <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
+      <div className="my-4 flex items-center gap-3 text-xs text-zinc-500">
         <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
         or continue with email
         <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
       </div>
-      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate>
+      <form className="space-y-3.5" onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <label className="block space-y-1.5">
           <span className="text-sm font-medium">Email</span>
           <Input type="email" autoComplete="email" placeholder="name@ustp.edu.ph" {...form.register('email')} />
@@ -55,7 +55,7 @@ export function LoginForm() {
           <span className="text-sm font-medium">Password</span>
           <span className="relative block">
             <Input type={showPassword ? 'text' : 'password'} autoComplete="current-password" className="pr-11" {...form.register('password')} />
-            <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+            <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg text-zinc-500 transition-colors hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-pink-500 dark:hover:text-white">
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </span>
@@ -63,18 +63,18 @@ export function LoginForm() {
         </label>
         <div className="flex items-center justify-between gap-3 text-sm">
           <label className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-            <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} className="h-4 w-4 accent-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500" />
+            <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} className="h-4 w-4 accent-pink-700 focus-visible:ring-2 focus-visible:ring-pink-500" />
             Remember me
           </label>
-          <Link to="/forgot-password" className="font-medium text-emerald-800 hover:underline dark:text-emerald-400">Forgot password?</Link>
+          <Link to="/forgot-password" className="rounded-sm font-medium text-zinc-600 transition-colors hover:text-pink-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:text-zinc-400 dark:hover:text-pink-300">Forgot password?</Link>
         </div>
         <Button type="submit" disabled={login.isPending} className="w-full">
           {login.isPending && <LoaderCircle size={16} className="animate-spin" />}
           {login.isPending ? 'Logging in...' : 'Log in'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
-        Don&apos;t have an account? <Link to="/register" className="font-semibold text-emerald-800 hover:underline dark:text-emerald-400">Sign up</Link>
+      <p className="mt-4 border-t border-zinc-100 pt-4 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+        Don&apos;t have an account? <Link to="/register" className="rounded-sm font-semibold text-zinc-800 transition-colors hover:text-pink-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:text-zinc-200 dark:hover:text-pink-300">Sign up</Link>
       </p>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useBorrowRequests } from '@/features/borrowing/hooks/useBorrowRequests'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { StatusBadge } from '@/components/shared/StatusBadge'
 
 export function BorrowRequestsTable() {
   const { data, isLoading, error } = useBorrowRequests()
@@ -14,7 +15,7 @@ export function BorrowRequestsTable() {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
         Failed to load requests: {error.message}
       </div>
     )
@@ -22,34 +23,32 @@ export function BorrowRequestsTable() {
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
+      <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
         No borrowing requests yet.
       </div>
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <table className="min-w-full divide-y divide-slate-200 text-left">
-        <thead className="bg-slate-50">
+    <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <table className="min-w-full divide-y divide-zinc-200 text-left dark:divide-zinc-800">
+        <thead className="bg-zinc-50 dark:bg-zinc-950">
           <tr>
-            <th className="px-4 py-3 text-sm font-medium text-slate-600">Equipment</th>
-            <th className="px-4 py-3 text-sm font-medium text-slate-600">Borrower</th>
-            <th className="px-4 py-3 text-sm font-medium text-slate-600">Status</th>
-            <th className="px-4 py-3 text-sm font-medium text-slate-600">Due date</th>
+            <th className="px-4 py-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">Equipment</th>
+            <th className="px-4 py-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">Borrower</th>
+            <th className="px-4 py-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">Status</th>
+            <th className="px-4 py-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">Due date</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className="divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900">
           {data.map((request) => (
-            <tr key={request.id}>
-              <td className="px-4 py-3 text-sm text-slate-900">{request.equipment_id}</td>
-              <td className="px-4 py-3 text-sm text-slate-700">{request.borrower_id}</td>
+            <tr key={request.id} className="transition-colors hover:bg-zinc-50 focus-within:bg-pink-50/40 dark:hover:bg-zinc-800/50 dark:focus-within:bg-pink-950/20">
+            <td className="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">{request.equipment_id}</td>
+            <td className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">{request.borrower_id}</td>
               <td className="px-4 py-3 text-sm">
-                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
-                  {request.status}
-                </span>
+                <StatusBadge status={request.status} />
               </td>
-              <td className="px-4 py-3 text-sm text-slate-700">
+              <td className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
                 {request.due_date ? new Date(request.due_date).toLocaleDateString() : '—'}
               </td>
             </tr>

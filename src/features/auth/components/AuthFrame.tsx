@@ -1,27 +1,46 @@
+import { ArrowRight, ClipboardCheck, PackageCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 export function AuthFrame({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
-    <main className="grid min-h-screen bg-white text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50 lg:grid-cols-[3fr_2fr]">
-      <section className="flex min-h-screen items-center justify-center px-5 py-12 sm:px-10">
-        <div className="w-full max-w-[400px]">
-          <Link to="/" className="text-lg font-bold tracking-tight" aria-label="BorrowIT home">
-            Borrow<span className="text-emerald-700 dark:text-emerald-400">IT</span>
-          </Link>
-          <div className="mt-12">
-            <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>
+    <main className="grid min-h-screen bg-stone-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50 lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="flex min-h-screen items-center justify-center px-4 py-6 sm:px-8 sm:py-10 lg:px-10">
+        <div className="w-full max-w-[520px] rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_24px_80px_-40px_rgba(24,24,27,.28)] sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="mb-6 flex items-center justify-between">
+            <Link to="/" className="inline-flex items-center gap-2.5 rounded-sm text-base font-bold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500" aria-label="BorrowIT home">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-700 text-sm font-bold text-white shadow-sm">B</span>
+              <span>Borrow<span className="text-pink-700 dark:text-pink-400">IT</span></span>
+            </Link>
+            <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-[11px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">USTP equipment services</span>
           </div>
-          <div className="mt-8">{children}</div>
+          <div className="mb-5">
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">{title}</h1>
+            <p className="mt-1.5 text-sm leading-5 text-zinc-600 dark:text-zinc-400">{subtitle}</p>
+          </div>
+          {children}
         </div>
       </section>
-      <aside className="relative hidden overflow-hidden border-l border-zinc-200 bg-zinc-100 p-12 dark:border-zinc-800 dark:bg-zinc-900 lg:flex lg:items-end">
-        <div className="absolute inset-0 opacity-50" style={{ backgroundImage: 'linear-gradient(rgba(24,24,27,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(24,24,27,.08) 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
-        <div className="relative max-w-md border-l-2 border-emerald-600 pl-6">
-          <p className="text-sm font-medium text-emerald-800 dark:text-emerald-400">Campus equipment, accounted for.</p>
-          <p className="mt-3 text-2xl font-medium leading-snug text-zinc-800 dark:text-zinc-100">One clear record from the first request to the final return.</p>
-          <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">BorrowIT · USTP equipment services</p>
+      <aside className="relative hidden min-h-screen overflow-hidden border-l border-zinc-200 bg-gradient-to-br from-rose-100 via-stone-100 to-zinc-100 p-12 dark:border-zinc-800 dark:from-rose-950/40 dark:via-zinc-900 dark:to-zinc-950 lg:flex lg:items-center lg:justify-center">
+        <div aria-hidden="true" className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-700/10" />
+        <div aria-hidden="true" className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-rose-200/50 blur-3xl dark:bg-rose-800/10" />
+        <div className="relative w-full max-w-lg">
+          <p className="text-sm font-semibold text-pink-800 dark:text-pink-300">BorrowIT · USTP</p>
+          <h2 className="mt-4 max-w-md text-4xl font-semibold leading-tight tracking-tight text-zinc-950 dark:text-white">Campus equipment, without the paper trail.</h2>
+          <p className="mt-4 max-w-md text-base leading-7 text-zinc-600 dark:text-zinc-300">One clear place to request, lend, and keep track of the things that help you learn.</p>
+          <div className="mt-9 space-y-3">
+            <div className="flex items-center gap-4 rounded-xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-sm dark:border-zinc-700/70 dark:bg-zinc-900/70">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300"><ClipboardCheck size={19} /></span>
+              <div className="flex-1"><p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Requests made clear</p><p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">See what you need and where it stands.</p></div>
+              <ArrowRight size={16} className="text-zinc-400" />
+            </div>
+            <div className="flex items-center gap-4 rounded-xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-sm dark:border-zinc-700/70 dark:bg-zinc-900/70">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"><PackageCheck size={19} /></span>
+              <div className="flex-1"><p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Every handoff accounted for</p><p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">Keep equipment details and history together.</p></div>
+              <ArrowRight size={16} className="text-zinc-400" />
+            </div>
+          </div>
+          <p className="mt-8 text-xs text-zinc-500 dark:text-zinc-400">A simpler way to share campus resources.</p>
         </div>
       </aside>
     </main>

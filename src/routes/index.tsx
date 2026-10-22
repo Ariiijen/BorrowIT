@@ -4,7 +4,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { Skeleton } from '@/components/ui/Skeleton'
-import ApiPractice from '@/ApiPractice'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { redirectByRole } from '@/features/auth/utils/redirectByRole'
 import { LandingPage } from '@/features/landing/pages/LandingPage'
@@ -45,7 +44,6 @@ export function AppRoutes() {
     <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/practice" element={<ApiPractice />} />
       <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><RegisterPage /></PublicOnly>} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />

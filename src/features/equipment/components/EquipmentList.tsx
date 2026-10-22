@@ -2,6 +2,7 @@ import { PackageSearch } from 'lucide-react'
 
 import { useEquipment } from '@/features/equipment/hooks/useEquipment'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { StatusBadge } from '@/components/shared/StatusBadge'
 
 export function EquipmentList({ searchTerm = '' }: { searchTerm?: string }) {
   const { data: equipment, isLoading, error } = useEquipment()
@@ -43,7 +44,7 @@ export function EquipmentList({ searchTerm = '' }: { searchTerm?: string }) {
       {filteredEquipment.map((item) => (
         <div
           key={item.id}
-          className="rounded-xl border border-zinc-200 bg-white p-5 transition-colors hover:border-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900"
+          className="rounded-xl border border-zinc-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -52,12 +53,8 @@ export function EquipmentList({ searchTerm = '' }: { searchTerm?: string }) {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                {item.status}
-              </span>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                {item.condition}
-              </span>
+              <StatusBadge status={item.status} />
+              <StatusBadge status={item.condition} neutral />
             </div>
           </div>
 

@@ -13,9 +13,9 @@ export function Features() {
   return (
     <section id="features" className="scroll-mt-16 border-y border-zinc-200 bg-zinc-50 py-20 dark:border-zinc-800 dark:bg-zinc-900/40 sm:py-24">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="max-w-2xl"><p className="text-sm font-semibold text-emerald-800 dark:text-emerald-400">The essentials, in one place</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl dark:text-white">Everything you need to manage campus equipment</h2></div>
+        <div className="max-w-2xl"><p className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">The essentials, in one place</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl dark:text-white">Everything you need to manage campus equipment</h2></div>
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, description }) => <article key={title} className="rounded-xl border border-zinc-200 bg-white p-6 transition-colors duration-150 hover:border-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-emerald-700"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400"><Icon size={19} strokeWidth={1.8} /></div><h3 className="mt-5 text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-zinc-600 dark:text-zinc-400">{description}</p></article>)}
+          {features.map(({ icon: Icon, title, description }) => <article key={title} className="rounded-xl border border-zinc-200 bg-white p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300"><Icon size={19} strokeWidth={1.8} /></div><h3 className="mt-5 text-base font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-zinc-600 dark:text-zinc-400">{description}</p></article>)}
         </div>
       </div>
     </section>

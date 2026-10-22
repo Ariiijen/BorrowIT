@@ -40,7 +40,7 @@ export function ForgotPasswordPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {isRecovery ? <label className="block space-y-1.5"><span className="text-sm font-medium">New password</span><Input type="password" minLength={8} autoComplete="new-password" required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label> : <label className="block space-y-1.5"><span className="text-sm font-medium">Email</span><Input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>}
         <Button type="submit" disabled={isPending || (isRecovery ? newPassword.length < 8 : !email)} className="w-full">{isPending ? 'Please wait...' : isRecovery ? 'Update password' : 'Send reset link'}</Button>
-        <p className="text-center text-sm"><Link to="/login" className="font-semibold text-emerald-800 hover:underline dark:text-emerald-400">Back to log in</Link></p>
+        <p className="text-center text-sm"><Link to="/login" className="font-semibold text-zinc-700 hover:text-pink-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:text-zinc-300 dark:hover:text-pink-300">Back to log in</Link></p>
       </form>
     </AuthFrame>
   )

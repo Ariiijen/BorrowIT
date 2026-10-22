@@ -2,16 +2,12 @@ import { ArrowRightLeft, CalendarClock, ClipboardList, Clock3 } from 'lucide-rea
 
 import { StatCard } from '@/components/shared/StatCard'
 import { BorrowRequestsTable } from '@/features/borrowing/components/BorrowRequestsTable'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 export function BorrowingDashboard() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">Overview</p>
-          <h1 className="text-3xl font-bold text-slate-900">Borrowing Dashboard</h1>
-        </div>
-      </div>
+      <PageHeader eyebrow="Overview" title="Borrowing dashboard" description="A summary of active loans, upcoming returns, and recent requests." />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -44,10 +40,10 @@ export function BorrowingDashboard() {
         />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-slate-900">Recent requests</h2>
-          <button type="button" className="text-sm font-medium text-blue-600">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Recent requests</h2>
+          <button type="button" className="rounded-sm text-sm font-medium text-zinc-600 transition-colors hover:text-pink-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 dark:text-zinc-400 dark:hover:text-pink-300 dark:focus-visible:ring-offset-zinc-950">
             View all
           </button>
         </div>
