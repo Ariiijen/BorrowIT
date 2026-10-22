@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const groups = [
   { title: 'Product', links: [['Features', '#features'], ['Pricing', 'mailto:borrowit@ustp.edu.ph?subject=BorrowIT%20pricing'], ['Changelog', 'mailto:borrowit@ustp.edu.ph?subject=BorrowIT%20updates']] },
-  { title: 'Company', links: [['About', '#about'], ['Contact', 'mailto:borrowit@ustp.edu.ph'], ['Careers', 'mailto:borrowit@ustp.edu.ph?subject=Careers']] },
+  { title: 'Company', links: [['About', '#about'], ['Developers', '#developers'], ['Contact', 'mailto:borrowit@ustp.edu.ph'], ['Careers', 'mailto:borrowit@ustp.edu.ph?subject=Careers']] },
   { title: 'Resources', links: [['Docs', 'mailto:borrowit@ustp.edu.ph?subject=Documentation'], ['Support', 'mailto:borrowit@ustp.edu.ph?subject=Support'], ['Status', 'mailto:borrowit@ustp.edu.ph?subject=Service%20status']] },
   { title: 'Legal', links: [['Privacy', '#privacy'], ['Terms', '#terms']] },
 ]

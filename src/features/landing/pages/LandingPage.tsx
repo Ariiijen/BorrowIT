@@ -1,4 +1,5 @@
 import { CTA } from '../components/CTA'
+import { Developers } from '../components/Developers'
 import { Features } from '../components/Features'
 import { Footer } from '../components/Footer'
 import { Header } from '../components/Header'
@@ -13,6 +14,7 @@ export function LandingPage() {
         <Hero />
         <Features />
         <HowItWorks />
+        <Developers />
         <CTA />
       </main>
       <Footer />
