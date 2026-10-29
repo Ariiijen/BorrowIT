@@ -1,6 +1,8 @@
 import { useMutation } from '@tanstack/react-query'
+import { createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth'
 
-import { supabase } from '@/lib/supabase'
+import { friendlyAuthError, savePendingProfile } from '@/features/auth/lib/authHelpers'
+import { auth } from '@/lib/firebase'
 import type { UserRole } from '@/types'
 
 export type EmailRegistration = {
@@ -15,21 +17,28 @@ export type EmailRegistration = {
 export function useEmailRegister() {
   return useMutation({
     mutationFn: async (input: EmailRegistration) => {
-      const { data, error } = await supabase.auth.signUp({
-        email: input.email,
-        password: input.password,
-        options: {
-          data: {
-            full_name: input.fullName,
-            role: 'Borrower',
-            student_number: input.studentNumber ?? null,
-            employee_number: input.employeeNumber ?? null,
-          },
-          emailRedirectTo: `${window.location.origin}/login`,
-        },
-      })
-      if (error) throw error
-      return data
+      try {
+        const { user } = await createUserWithEmailAndPassword(
+          auth,
+          input.email,
+          input.password,
+        )
+        await updateProfile(user, { displayName: input.fullName })
+
+        // The profile row is created at first login (see useEmailLogin).
+        savePendingProfile(user.uid, {
+          email: input.email,
+          fullName: input.fullName,
+          role: input.role === 'Admin' ? 'Borrower' : input.role,
+          studentNumber: input.studentNumber ?? null,
+          employeeNumber: input.employeeNumber ?? null,
+        })
+
+        await signOut(auth)
+        return { user }
+      } catch (error) {
+        throw friendlyAuthError(error)
+      }
     },
   })
 }

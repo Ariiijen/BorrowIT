@@ -1,12 +1,17 @@
 import { createContext } from 'react'
-import type { User } from '@supabase/supabase-js'
 import type { UserRole } from '@/types'
 import type { Database } from '@/types/database'
 
 export type Profile = Database['public']['Tables']['profiles']['Row']
 
+export type SessionUser = {
+  id: string
+  email: string | null
+  displayName: string | null
+}
+
 export type AuthContextValue = {
-  user: User | null
+  user: SessionUser | null
   profile: Profile | null
   isLoading: boolean
   isAuthenticated: boolean

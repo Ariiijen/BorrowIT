@@ -1,12 +1,25 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import type { Session, User } from '@supabase/supabase-js'
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile,
+} from 'firebase/auth'
 
+import {
+  clearPendingProfile,
+  friendlyAuthError,
+  readPendingProfile,
+  savePendingProfile,
+} from '@/features/auth/lib/authHelpers'
+import { auth } from '@/lib/firebase'
 import { supabase } from '@/lib/supabase'
 import type { UserRole } from '@/types'
-import { AuthContext, type Profile } from './authContext'
+import { AuthContext, type Profile, type SessionUser } from './authContext'
 
-async function readOrCreateProfile(user: User): Promise<Profile> {
+async function readOrCreateProfile(user: SessionUser): Promise<Profile> {
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -16,17 +29,19 @@ async function readOrCreateProfile(user: User): Promise<Profile> {
   if (error) throw error
   if (data) return data
 
-  const metadataRole = user.user_metadata?.role
-  const role: UserRole = metadataRole === 'Lender' || metadataRole === 'Faculty' ? metadataRole : 'Borrower'
+  const pending = readPendingProfile(user.id)
+  const role: UserRole =
+    pending?.role === 'Lender' || pending?.role === 'Faculty' ? pending.role : 'Borrower'
+
   const { data: created, error: insertError } = await supabase
     .from('profiles')
     .insert({
       id: user.id,
-      email: user.email ?? '',
-      full_name: user.user_metadata?.full_name ?? user.email ?? '',
+      email: pending?.email ?? user.email ?? '',
+      full_name: pending?.fullName ?? user.displayName ?? user.email ?? '',
       role,
-      student_number: user.user_metadata?.student_number ?? null,
-      employee_number: user.user_metadata?.employee_number ?? null,
+      student_number: pending?.studentNumber ?? null,
+      employee_number: pending?.employeeNumber ?? null,
     })
     .select('*')
     .single()
@@ -43,23 +58,29 @@ async function readOrCreateProfile(user: User): Promise<Profile> {
     }
     throw insertError
   }
+
+  clearPendingProfile(user.id)
   return created
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<SessionUser | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const previousRole = useRef<UserRole | null>(null)
   const activeUserId = useRef<string | null>(null)
 
+  // Firebase fires this once on load with the saved session, then on every change.
   useEffect(() => {
     let active = true
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session: Session | null) => {
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       if (!active) return
-      const nextUser = session?.user ?? null
+      const nextUser: SessionUser | null = fbUser
+        ? { id: fbUser.uid, email: fbUser.email, displayName: fbUser.displayName }
+        : null
       const nextUserId = nextUser?.id ?? null
+
       if (activeUserId.current !== nextUserId) {
         activeUserId.current = nextUserId
         setIsLoading(!!nextUser)
@@ -68,33 +89,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         queryClient.clear()
       }
       setUser(nextUser)
-      if (!nextUser) {
-        setIsLoading(false)
-      }
-    })
-
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (!active) return
-      if (error) console.error('Unable to read auth session:', error.message)
-      const sessionUser = data.session?.user ?? null
-      activeUserId.current = sessionUser?.id ?? null
-      setUser(sessionUser)
-      setIsLoading(!!sessionUser)
+      if (!nextUser) setIsLoading(false)
     })
 
     return () => {
       active = false
-      subscription.unsubscribe()
+      unsubscribe()
     }
   }, [queryClient])
 
   useEffect(() => {
     let active = true
     if (!user) return () => { active = false }
+    const currentUser = user
 
     async function refreshProfile() {
       try {
-        const nextProfile = await readOrCreateProfile(user)
+        const nextProfile = await readOrCreateProfile(currentUser)
         if (!active) return
         if (previousRole.current && previousRole.current !== nextProfile.role) queryClient.clear()
         previousRole.current = nextProfile.role
@@ -118,8 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, queryClient])
 
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+    } catch (error) {
+      throw friendlyAuthError(error)
+    }
   }
 
   async function signUp(input: {
@@ -130,32 +144,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     studentNumber?: string
     employeeNumber?: string
   }) {
-    const { error } = await supabase.auth.signUp({
-      email: input.email,
-      password: input.password,
-      options: {
-        data: {
-          full_name: input.fullName,
-          role: 'Borrower',
-          student_number: input.studentNumber ?? null,
-          employee_number: input.employeeNumber ?? null,
-        },
-        emailRedirectTo: `${window.location.origin}/login`,
-      },
-    })
-    if (error) throw error
+    try {
+      const { user: created } = await createUserWithEmailAndPassword(
+        auth,
+        input.email,
+        input.password,
+      )
+      await updateProfile(created, { displayName: input.fullName })
+      savePendingProfile(created.uid, {
+        email: input.email,
+        fullName: input.fullName,
+        role: input.role,
+        studentNumber: input.studentNumber ?? null,
+        employeeNumber: input.employeeNumber ?? null,
+      })
+      // The account must be activated by the admin before it can be used.
+      await firebaseSignOut(auth)
+    } catch (error) {
+      throw friendlyAuthError(error)
+    }
   }
 
   async function signOut() {
     queryClient.clear()
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    await firebaseSignOut(auth)
     setUser(null)
     setProfile(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, isAuthenticated: !!user, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ user, profile, isLoading, isAuthenticated: !!user, signIn, signUp, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )
