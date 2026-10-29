@@ -345,11 +345,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data ->> 'full_name', new.email),
-    case new.raw_user_meta_data ->> 'role'
-      when 'Lender' then 'Lender'::public.user_role
-      when 'Faculty' then 'Faculty'::public.user_role
-      else 'Borrower'::public.user_role
-    end,
+    'Borrower'::public.user_role,
     new.raw_user_meta_data ->> 'student_number',
     new.raw_user_meta_data ->> 'employee_number'
   )

@@ -30,7 +30,6 @@ export function RegisterForm() {
     resolver: zodResolver(emailRegisterSchema),
     defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', role: 'Borrower', studentNumber: '', employeeNumber: '', acceptedTerms: false },
   })
-  const role = useWatch({ control: form.control, name: 'role' })
   const password = useWatch({ control: form.control, name: 'password' })
   const strength = passwordLevel(password)
   const strengthLabel = ['Too short', 'Weak', 'Fair', 'Strong', 'Strong'][strength]
@@ -77,18 +76,9 @@ export function RegisterForm() {
         </label>
         </div>
         <div className="space-y-3 sm:col-span-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium">Role</span>
-          <select {...form.register('role')} className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 dark:border-zinc-700 dark:bg-zinc-900 dark:focus-visible:ring-offset-zinc-900">
-            <option value="Borrower">Student · Borrower</option>
-            <option value="Lender">Student · Lender</option>
-            <option value="Faculty">Faculty</option>
-          </select>
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium">{role === 'Faculty' ? 'Employee number' : 'Student number'}</span>
-          <Input autoComplete="off" {...form.register(role === 'Faculty' ? 'employeeNumber' : 'studentNumber')} />
-          {form.formState.errors.employeeNumber && <span className="block text-sm text-red-600">{form.formState.errors.employeeNumber.message}</span>}
+        <label className="block space-y-1.5 sm:col-span-2">
+          <span className="text-sm font-medium">Student number</span>
+          <Input autoComplete="off" {...form.register('studentNumber')} />
           {form.formState.errors.studentNumber && <span className="block text-sm text-red-600">{form.formState.errors.studentNumber.message}</span>}
         </label>
         </div>

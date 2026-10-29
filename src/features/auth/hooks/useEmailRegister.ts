@@ -21,7 +21,7 @@ export function useEmailRegister() {
         options: {
           data: {
             full_name: input.fullName,
-            role: input.role === 'Admin' ? 'Borrower' : input.role,
+            role: 'Borrower',
             student_number: input.studentNumber ?? null,
             employee_number: input.employeeNumber ?? null,
           },
