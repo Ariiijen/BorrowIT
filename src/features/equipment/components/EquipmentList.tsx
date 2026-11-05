@@ -1,7 +1,9 @@
-import { ImageOff, PackageSearch, UserRound } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronRight, ImageOff, PackageSearch, UserRound } from 'lucide-react'
 
 import { Skeleton } from '@/components/ui/Skeleton'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { EquipmentDetailsModal } from '@/features/equipment/components/EquipmentDetailsModal'
 import type { Database } from '@/types/database'
 
 type Equipment = Database['public']['Tables']['equipment']['Row'] & {
@@ -21,6 +23,7 @@ export function EquipmentList({
   error?: Error | null
   onBorrow?: (equipmentId: string) => void
 }) {
+  const [detailsEquipment, setDetailsEquipment] = useState<Equipment | null>(null)
   const filteredEquipment = equipment?.filter((item) =>
     `${item.name} ${item.category} ${item.description ?? ''}`.toLowerCase().includes(searchTerm.toLowerCase()),
   )
@@ -55,6 +58,7 @@ export function EquipmentList({
   }
 
   return (
+    <>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {filteredEquipment.map((item) => (
         <div
@@ -103,12 +107,21 @@ export function EquipmentList({
           <p className="mt-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
             {item.available_stock}/{item.total_stock} units available
           </p>
-          {item.terms && (
-            <p className="mt-2 text-xs text-zinc-500"><span className="font-semibold">Terms:</span> {item.terms}</p>
+          {(item.terms || item.usage_instructions) && (
+            <button
+              type="button"
+              onClick={() => setDetailsEquipment(item)}
+              className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-pink-700 transition-colors hover:text-pink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 dark:text-pink-400 dark:hover:text-pink-300 dark:focus-visible:ring-offset-zinc-900"
+            >
+              View terms and usage
+              <ChevronRight size={15} />
+            </button>
           )}
           </div>
         </div>
       ))}
     </div>
+    {detailsEquipment && <EquipmentDetailsModal equipment={detailsEquipment} onClose={() => setDetailsEquipment(null)} />}
+    </>
   )
 }

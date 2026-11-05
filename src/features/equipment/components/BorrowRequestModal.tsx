@@ -3,6 +3,7 @@ import { CalendarDays, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useCreateBorrowRequest } from '@/features/borrowing/hooks/useCreateBorrowRequest'
+import { EquipmentDetailsModal } from '@/features/equipment/components/EquipmentDetailsModal'
 import type { Database } from '@/types/database'
 
 type Equipment = Database['public']['Tables']['equipment']['Row'] & {
@@ -23,20 +24,21 @@ export function BorrowRequestModal({
   const [requestedFrom, setRequestedFrom] = useState(today)
   const [requestedTo, setRequestedTo] = useState(tomorrow)
   const [notes, setNotes] = useState('')
+  const [showDetails, setShowDetails] = useState(false)
   const { mutate, isPending } = useCreateBorrowRequest()
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape' && !showDetails) onClose()
     }
     window.addEventListener('keydown', closeOnEscape)
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', closeOnEscape)
     }
-  }, [onClose])
+  }, [onClose, showDetails])
 
   function submit() {
     if (!requestedFrom || !requestedTo) {
@@ -75,11 +77,17 @@ export function BorrowRequestModal({
 
         <div className="space-y-5 p-5">
           {equipment.image_url && <img src={equipment.image_url} alt={equipment.name} className="aspect-[16/7] w-full rounded-xl object-cover" />}
+          {equipment.description && <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-400">{equipment.description}</p>}
           <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm dark:border-emerald-900 dark:bg-emerald-950/30">
             <span className="text-zinc-600 dark:text-zinc-400">Available units</span>
             <strong className="text-emerald-700 dark:text-emerald-400">{equipment.available_stock}/{equipment.total_stock}</strong>
           </div>
-          {equipment.terms && <p className="rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600 dark:bg-zinc-950 dark:text-zinc-400"><strong>Borrowing terms:</strong> {equipment.terms}</p>}
+          {(equipment.terms || equipment.usage_instructions) && (
+            <button type="button" onClick={() => setShowDetails(true)} className="flex w-full items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm font-semibold text-zinc-700 transition hover:border-pink-300 hover:bg-pink-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-pink-900 dark:hover:bg-pink-950/20">
+              View terms and usage
+              <span aria-hidden="true">→</span>
+            </button>
+          )}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="space-y-1.5 text-sm font-medium">
               Start date
@@ -106,6 +114,7 @@ export function BorrowRequestModal({
           <button type="button" onClick={onClose} className="h-11 flex-1 rounded-lg border border-zinc-300 text-sm font-semibold hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800">Cancel</button>
           <button type="button" onClick={submit} disabled={isPending} className="h-11 flex-[2] rounded-lg bg-pink-700 px-4 text-sm font-semibold text-white hover:bg-pink-800 disabled:cursor-not-allowed disabled:opacity-50">{isPending ? 'Sending...' : 'Send request'}</button>
         </div>
+        {showDetails && <EquipmentDetailsModal equipment={equipment} onClose={() => setShowDetails(false)} />}
       </div>
     </div>
   )
