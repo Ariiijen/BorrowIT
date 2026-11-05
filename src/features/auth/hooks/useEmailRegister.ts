@@ -51,7 +51,23 @@ export function useEmailRegister() {
             activation_status: 'Pending',
           })
 
-        if (profileError) throw profileError
+        if (profileError) {
+          if (profileError.code === '23505') {
+            const { error: replaceError } = await supabase.rpc(
+              'replace_stale_profile_on_reregistration',
+              {
+                p_email: input.email.trim().toLowerCase(),
+                p_full_name: input.fullName.trim(),
+                p_role: input.role === 'Admin' ? 'Borrower' : input.role,
+                p_student_number: input.studentNumber?.trim() || null,
+                p_employee_number: input.employeeNumber?.trim() || null,
+              },
+            )
+            if (replaceError) throw replaceError
+          } else {
+            throw profileError
+          }
+        }
 
         clearPendingProfile(user.uid)
         await signOut(auth)

@@ -63,7 +63,7 @@ export function EquipmentList({
       {filteredEquipment.map((item) => (
         <div
           key={item.id}
-          className="overflow-hidden rounded-xl border border-zinc-200 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+          className="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
         >
           <div className="aspect-[16/10] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
             {item.image_url ? (
@@ -75,10 +75,10 @@ export function EquipmentList({
               </div>
             )}
           </div>
-          <div className="p-5">
+          <div className="flex flex-1 flex-col p-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{item.name}</h3>
+              <h3 className="line-clamp-2 min-h-[3.5rem] text-lg font-semibold leading-7 text-zinc-900 dark:text-zinc-100">{item.name}</h3>
               <p className="mt-1 text-sm text-zinc-500">{item.category}</p>
               <p className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
                 <UserRound size={13} />
@@ -102,12 +102,12 @@ export function EquipmentList({
           </div>
 
           {item.description && (
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{item.description}</p>
+            <p className="mt-3 line-clamp-5 text-sm text-zinc-600 dark:text-zinc-400">{item.description}</p>
           )}
-          <p className="mt-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-            {item.available_stock}/{item.total_stock} units available
-          </p>
-          {(item.terms || item.usage_instructions) && (
+          <div className="mt-auto pt-3">
+            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+              {item.available_stock}/{item.total_stock} units available
+            </p>
             <button
               type="button"
               onClick={() => setDetailsEquipment(item)}
@@ -116,7 +116,7 @@ export function EquipmentList({
               View terms and usage
               <ChevronRight size={15} />
             </button>
-          )}
+          </div>
           </div>
         </div>
       ))}

@@ -20,15 +20,43 @@ import type { UserRole } from '@/types'
 import { AuthContext, type Profile, type SessionUser } from './authContext'
 
 async function readOrCreateProfile(user: SessionUser): Promise<Profile> {
-  const profileQuery = user.email
-    ? supabase.from('profiles').select('*').eq('email', user.email).maybeSingle()
-    : supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
-  const { data, error } = await profileQuery
-
-  if (error) throw error
-  if (data) return data
+  const { data: profileById, error: idError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (idError) throw idError
+  if (profileById) return profileById
 
   const pending = readPendingProfile(user.id)
+  const { data: profileByEmail, error: emailError } = user.email
+    ? await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', user.email.toLowerCase())
+        .maybeSingle()
+    : { data: null, error: null }
+  if (emailError) throw emailError
+  if (profileByEmail && profileByEmail.id !== user.id) {
+    const { error: replaceError } = await supabase.rpc('replace_stale_profile_on_reregistration', {
+      p_email: user.email?.toLowerCase() ?? '',
+      p_full_name: pending?.fullName ?? user.displayName ?? user.email ?? '',
+      p_role: pending?.role && pending.role !== 'Admin' ? pending.role : 'Borrower',
+      p_student_number: pending?.studentNumber ?? null,
+      p_employee_number: pending?.employeeNumber ?? null,
+    })
+    if (replaceError) throw replaceError
+    const { data: replacement, error: replacementError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (replacementError) throw replacementError
+    if (!replacement) throw new Error('Unable to create the new pending profile.')
+    clearPendingProfile(user.id)
+    return replacement
+  }
+
   const role: UserRole =
     pending?.role === 'Lender' || pending?.role === 'Faculty' ? pending.role : 'Borrower'
 

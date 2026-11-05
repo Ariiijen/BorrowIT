@@ -25,7 +25,7 @@ export function useEmailLogin() {
         const { data: existing, error: selectError } = await supabase
           .from('profiles')
           .select('id, role, is_activated, activation_status, rejection_reason')
-          .eq('email', credentials.email)
+          .eq('id', user.uid)
           .maybeSingle()
         if (selectError) throw selectError
 
@@ -46,6 +46,28 @@ export function useEmailLogin() {
         // First login: create the profile saved at registration.
         if (!existing) {
           const pending = readPendingProfile(user.uid)
+          const { data: staleProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', (user.email ?? credentials.email).toLowerCase())
+            .neq('id', user.uid)
+            .maybeSingle()
+          if (staleProfile) {
+            const { error: replaceError } = await supabase.rpc(
+              'replace_stale_profile_on_reregistration',
+              {
+                p_email: user.email ?? credentials.email,
+                p_full_name: pending?.fullName ?? user.displayName ?? user.email ?? '',
+                p_role: pending?.role && pending.role !== 'Admin' ? pending.role : 'Borrower',
+                p_student_number: pending?.studentNumber ?? null,
+                p_employee_number: pending?.employeeNumber ?? null,
+              },
+            )
+            if (replaceError) throw replaceError
+            clearPendingProfile(user.uid)
+            await signOut(auth)
+            throw new Error('Your account was created again and is waiting for admin activation.')
+          }
           const newRole: Role =
             pending?.role && pending.role !== 'Admin' ? pending.role : 'Borrower'
 

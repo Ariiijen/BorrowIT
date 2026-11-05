@@ -25,7 +25,7 @@ export function useGoogleLogin() {
         const { data: existing, error: selectError } = await supabase
           .from('profiles')
           .select('id, role, is_activated, activation_status, rejection_reason')
-          .eq('email', user.email ?? '')
+          .eq('id', user.uid)
           .maybeSingle()
         if (selectError) throw selectError
 
@@ -45,6 +45,29 @@ export function useGoogleLogin() {
 
         // First login: create a Borrower profile from the Google account.
         if (!existing) {
+          const { data: staleProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', (user.email ?? '').toLowerCase())
+            .neq('id', user.uid)
+            .maybeSingle()
+
+          if (staleProfile) {
+            const { error: replaceError } = await supabase.rpc(
+              'replace_stale_profile_on_reregistration',
+              {
+                p_email: user.email ?? '',
+                p_full_name: user.displayName ?? user.email ?? '',
+                p_role: registration?.role ?? 'Borrower',
+                p_student_number: registration?.studentNumber?.trim() || null,
+                p_employee_number: registration?.employeeNumber?.trim() || null,
+              },
+            )
+            if (replaceError) throw replaceError
+            await signOut(auth)
+            throw new Error('Your account was created again and is waiting for admin activation.')
+          }
+
           const { error: insertError } = await supabase.from('profiles').insert({
             id: user.uid,
             email: user.email ?? '',

@@ -82,12 +82,10 @@ export function BorrowRequestModal({
             <span className="text-zinc-600 dark:text-zinc-400">Available units</span>
             <strong className="text-emerald-700 dark:text-emerald-400">{equipment.available_stock}/{equipment.total_stock}</strong>
           </div>
-          {(equipment.terms || equipment.usage_instructions) && (
-            <button type="button" onClick={() => setShowDetails(true)} className="flex w-full items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm font-semibold text-zinc-700 transition hover:border-pink-300 hover:bg-pink-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-pink-900 dark:hover:bg-pink-950/20">
-              View terms and usage
-              <span aria-hidden="true">→</span>
-            </button>
-          )}
+          <button type="button" onClick={() => setShowDetails(true)} className="flex w-full items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm font-semibold text-zinc-700 transition hover:border-pink-300 hover:bg-pink-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-pink-900 dark:hover:bg-pink-950/20">
+            View terms and usage
+            <span aria-hidden="true">→</span>
+          </button>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="space-y-1.5 text-sm font-medium">
               Start date

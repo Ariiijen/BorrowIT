@@ -10,22 +10,41 @@ export function useEmailNotifications() {
 
   useEffect(() => {
     if (!user) return
+    const userId = user.id
 
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
     if (!serviceId || !templateId || !publicKey) return
 
-    async function processPendingEmails() {
+    async function processPendingEmails(recipientEmail?: string, notificationId?: string) {
       if (sending.current) return
       sending.current = true
       try {
-        const { data: deliveries, error } = await supabase
+        let deliveriesQuery = supabase
           .from('notification_delivery')
           .select('id, notification_id, email, attempts')
           .eq('status', 'Pending')
           .lt('attempts', 5)
           .limit(20)
+
+        if (notificationId) {
+          deliveriesQuery = deliveriesQuery.eq('notification_id', notificationId)
+        } else if (recipientEmail) {
+          deliveriesQuery = deliveriesQuery.eq('email', recipientEmail.toLowerCase())
+        } else {
+          const { data: ownNotifications, error: ownNotificationsError } = await supabase
+            .from('notifications')
+            .select('id')
+            .eq('user_id', userId)
+          if (ownNotificationsError) throw ownNotificationsError
+
+          const notificationIds = (ownNotifications ?? []).map((notification) => notification.id)
+          if (notificationIds.length === 0) return
+          deliveriesQuery = deliveriesQuery.in('notification_id', notificationIds)
+        }
+
+        const { data: deliveries, error } = await deliveriesQuery
         if (error) throw error
 
         for (const delivery of deliveries ?? []) {
@@ -44,11 +63,12 @@ export function useEmailNotifications() {
               workspace_url: `${window.location.origin}/notifications`,
               name: 'BorrowIT',
             }, { publicKey })
-            await supabase.from('notification_delivery').update({
+            const { error: updateError } = await supabase.from('notification_delivery').update({
               status: 'Sent',
               attempts: delivery.attempts + 1,
               last_attempt_at: new Date().toISOString(),
             }).eq('id', delivery.id)
+            if (updateError) throw updateError
           } catch (error) {
             await supabase.from('notification_delivery').update({
               status: delivery.attempts + 1 >= 5 ? 'Failed' : 'Pending',
@@ -65,6 +85,14 @@ export function useEmailNotifications() {
 
     void processPendingEmails()
     const intervalId = window.setInterval(() => void processPendingEmails(), 60_000)
-    return () => window.clearInterval(intervalId)
+    const handlePendingDelivery = (event: Event) => {
+      const detail = (event as CustomEvent<{ email?: string; notificationId?: string }>).detail
+      void processPendingEmails(detail?.email, detail?.notificationId)
+    }
+    window.addEventListener('borrowit:pending-email', handlePendingDelivery)
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener('borrowit:pending-email', handlePendingDelivery)
+    }
   }, [user?.id])
 }

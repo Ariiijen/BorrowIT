@@ -49,10 +49,25 @@ export function UsersPage() {
         p_reason: reason,
       })
       if (error) throw error
-      return action
+      return { action, profile }
     },
-    onSuccess: async (action) => {
+    onSuccess: async ({ action, profile }) => {
       toast.success(`Account ${action === 'Approve' ? 'activated' : 'rejected'} successfully.`)
+      const expectedType = action === 'Approve' ? 'AccountApproved' : 'AccountRejected'
+      const { data: accountNotification } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', profile.id)
+        .eq('type', expectedType)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      window.dispatchEvent(new CustomEvent('borrowit:pending-email', {
+        detail: {
+          email: profile.email,
+          notificationId: accountNotification?.id,
+        },
+      }))
       setRejecting(false)
       setRejectionReason('')
       setSelected(null)

@@ -200,7 +200,7 @@ export type Database = {
         Row: {
           id: string
           user_id: string
-          type: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled'
+          type: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled' | 'AccountApproved' | 'AccountRejected'
           message: string
           is_read: boolean
           created_at: string
@@ -208,7 +208,7 @@ export type Database = {
         Insert: {
           id?: string
           user_id: string
-          type: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled'
+          type: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled' | 'AccountApproved' | 'AccountRejected'
           message: string
           is_read?: boolean
           created_at?: string
@@ -216,7 +216,7 @@ export type Database = {
         Update: {
           id?: string
           user_id?: string
-          type?: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled'
+          type?: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled' | 'AccountApproved' | 'AccountRejected'
           message?: string
           is_read?: boolean
           created_at?: string
@@ -366,6 +366,7 @@ export type Database = {
       current_user_role: { Args: Record<PropertyKey, never>; Returns: 'Borrower' | 'Lender' | 'Faculty' | 'Admin' | null }
       list_profiles_for_admin: { Args: Record<PropertyKey, never>; Returns: unknown[] }
       review_user_account: { Args: { p_profile_id: string; p_action: 'Approve' | 'Reject'; p_reason?: string | null }; Returns: unknown }
+      replace_stale_profile_on_reregistration: { Args: { p_email: string; p_full_name?: string | null; p_role?: string | null; p_student_number?: string | null; p_employee_number?: string | null }; Returns: unknown }
       bootstrap_first_admin: { Args: { p_email: string; p_full_name: string }; Returns: string }
       approve_borrowing_request: { Args: { p_request_id: string }; Returns: unknown }
       create_borrow_request: { Args: { p_equipment_id: string; p_start_date: string; p_end_date: string; p_notes?: string | null }; Returns: string }
@@ -382,7 +383,7 @@ export type Database = {
       process_due_notifications: { Args: Record<PropertyKey, never>; Returns: number }
       process_expired_requests: { Args: Record<PropertyKey, never>; Returns: number }
       create_notification: {
-        Args: { p_user_id: string; p_type: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled'; p_message: string }
+        Args: { p_user_id: string; p_type: 'RequestCreated' | 'RequestApproved' | 'RequestRejected' | 'DueSoon' | 'Overdue' | 'ReturnRecorded' | 'DisputeFiled' | 'AccountApproved' | 'AccountRejected'; p_message: string }
         Returns: string
       }
     }
