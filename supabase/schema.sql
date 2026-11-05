@@ -1,4 +1,4 @@
--- BorrowIT database schema for Supabase
+﻿-- BorrowIT database schema for Supabase
 -- This file defines the base tables for profiles, equipment, borrowing requests, and notifications.
 
 create extension if not exists "uuid-ossp";
@@ -18,7 +18,7 @@ create type public.notification_type as enum (
 );
 
 create table public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id text primary key,
   email text not null unique,
   full_name text,
   role public.user_role not null default 'Borrower',
@@ -32,23 +32,23 @@ create table public.profiles (
 );
 
 create table public.equipment (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   description text,
   category text not null,
   condition public.equipment_condition not null default 'New',
   status public.equipment_status not null default 'Available',
   owner_type text not null default 'Student' check (owner_type in ('Student', 'School')),
-  owner_id uuid not null references public.profiles(id) on delete cascade,
+  owner_id text not null references public.profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
   updated_at timestamptz
 );
 
 create table public.borrowing_requests (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   equipment_id uuid not null references public.equipment(id) on delete cascade,
-  borrower_id uuid not null references public.profiles(id) on delete cascade,
-  lender_id uuid references public.profiles(id) on delete set null,
+  borrower_id text not null references public.profiles(id) on delete cascade,
+  lender_id text references public.profiles(id) on delete set null,
   start_date date not null,
   end_date date not null,
   status public.borrowing_status not null default 'Pending',
@@ -62,8 +62,8 @@ create table public.borrowing_requests (
 );
 
 create table public.notifications (
-  id uuid primary key default uuid_generate_v4(),
-  user_id uuid not null references public.profiles(id) on delete cascade,
+  id uuid primary key default gen_random_uuid(),
+  user_id text not null references public.profiles(id) on delete cascade,
   type public.notification_type not null,
   message text not null,
   is_read boolean not null default false,
@@ -71,11 +71,11 @@ create table public.notifications (
 );
 
 create table public.lending (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   borrowing_request_id uuid not null unique references public.borrowing_requests(id) on delete cascade,
   equipment_id uuid not null references public.equipment(id) on delete cascade,
-  lender_id uuid not null references public.profiles(id) on delete cascade,
-  borrower_id uuid not null references public.profiles(id) on delete cascade,
+  lender_id text not null references public.profiles(id) on delete cascade,
+  borrower_id text not null references public.profiles(id) on delete cascade,
   start_date date not null,
   end_date date not null,
   status text not null check (status in ('Borrowed', 'Returned')),
@@ -84,21 +84,21 @@ create table public.lending (
 );
 
 create table public.return_record (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   lending_id uuid not null references public.lending(id) on delete cascade,
   borrowing_request_id uuid not null references public.borrowing_requests(id) on delete cascade,
   equipment_id uuid not null references public.equipment(id) on delete cascade,
-  borrower_id uuid not null references public.profiles(id) on delete cascade,
+  borrower_id text not null references public.profiles(id) on delete cascade,
   condition public.equipment_condition not null,
   notes text,
   returned_at timestamptz not null default now()
 );
 
 create table public.dispute (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   borrowing_request_id uuid not null references public.borrowing_requests(id) on delete cascade,
-  reporter_id uuid not null references public.profiles(id) on delete cascade,
-  against_user_id uuid not null references public.profiles(id) on delete cascade,
+  reporter_id text not null references public.profiles(id) on delete cascade,
+  against_user_id text not null references public.profiles(id) on delete cascade,
   description text not null,
   status text not null default 'Open' check (status in ('Open', 'UnderReview', 'Resolved', 'Dismissed')),
   resolution_notes text,
@@ -109,7 +109,7 @@ create table public.dispute (
 
 create table public.audit_log (
   id bigint generated always as identity primary key,
-  actor_id uuid references public.profiles(id) on delete set null,
+  actor_id text references public.profiles(id) on delete set null,
   action text not null,
   table_name text not null,
   record_id text,
@@ -136,7 +136,7 @@ set search_path = public
 as $$
   select exists (
     select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'Admin'
+    where p.id = auth.uid()::text and p.role = 'Admin'
   );
 $$;
 
@@ -150,7 +150,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select p.role from public.profiles p where p.id = auth.uid();
+  select p.role from public.profiles p where p.id = auth.uid()::text;
 $$;
 
 revoke all on function public.current_user_role() from public;
@@ -160,7 +160,7 @@ create policy "profiles_are_viewable_by_owner_or_admin"
   on public.profiles
   for select
   using (
-    auth.uid() = id
+    auth.uid()::text = id
     or public.is_admin()
   );
 
@@ -168,52 +168,52 @@ create policy "profiles_can_be_created_by_owner"
   on public.profiles
   for insert
   with check (
-    auth.uid() = id
+    auth.uid()::text = id
     and role in ('Borrower', 'Lender', 'Faculty')
   );
 
 create policy "profiles_can_be_updated_by_owner_or_admin"
   on public.profiles
   for update
-  using (auth.uid() = id or public.is_admin())
-  with check (auth.uid() = id or public.is_admin());
+  using (auth.uid()::text = id or public.is_admin())
+  with check (auth.uid()::text = id or public.is_admin());
 
 create policy "equipment_are_viewable_by_all_auth_users"
   on public.equipment
   for select
   using (
     auth.role() = 'authenticated'
-    and (status = 'Available' or owner_id = auth.uid() or public.is_admin())
+    and (status = 'Available' or owner_id = auth.uid()::text or public.is_admin())
   );
 
 create policy "lenders_and_admins_can_insert_equipment"
   on public.equipment
   for insert
   with check (
-    (auth.uid() = owner_id and owner_type = 'Student' and public.current_user_role() = 'Lender')
+    (auth.uid()::text = owner_id and owner_type = 'Student' and public.current_user_role() = 'Lender')
     or (public.is_admin() and owner_type = 'School')
   );
 
 create policy "owners_and_admins_can_update_equipment"
   on public.equipment
   for update
-  using (auth.uid() = owner_id or public.is_admin())
-  with check (auth.uid() = owner_id or public.is_admin());
+  using (auth.uid()::text = owner_id or public.is_admin())
+  with check (auth.uid()::text = owner_id or public.is_admin());
 
 create policy "owners_can_delete_available_equipment"
   on public.equipment
   for delete
-  using ((auth.uid() = owner_id and status = 'Available') or public.is_admin());
+  using ((auth.uid()::text = owner_id and status = 'Available') or public.is_admin());
 
 create policy "borrowing_requests_are_viewable_by_related_users"
   on public.borrowing_requests
   for select
   using (
-    auth.uid() = borrower_id
-    or auth.uid() = lender_id
+    auth.uid()::text = borrower_id
+    or auth.uid()::text = lender_id
     or exists (
       select 1 from public.equipment e
-      where e.id = equipment_id and e.owner_id = auth.uid()
+      where e.id = equipment_id and e.owner_id = auth.uid()::text
     )
     or public.is_admin()
   );
@@ -222,13 +222,13 @@ create policy "borrowers_can_create_pending_requests"
   on public.borrowing_requests
   for insert
   with check (
-    auth.uid() = borrower_id
+    auth.uid()::text = borrower_id
     and lender_id is null
     and status = 'Pending'
     and exists (
       select 1 from public.equipment e
       where e.id = equipment_id
-        and e.owner_id <> auth.uid()
+        and e.owner_id <> auth.uid()::text
         and e.status = 'Available'
     )
   );
@@ -236,8 +236,8 @@ create policy "borrowers_can_create_pending_requests"
 create policy "borrowers_can_cancel_pending_requests"
   on public.borrowing_requests
   for update
-  using (auth.uid() = borrower_id and status = 'Pending')
-  with check (auth.uid() = borrower_id and status in ('Pending', 'Cancelled'));
+  using (auth.uid()::text = borrower_id and status = 'Pending')
+  with check (auth.uid()::text = borrower_id and status in ('Pending', 'Cancelled'));
 
 create policy "owners_and_admins_can_review_requests"
   on public.borrowing_requests
@@ -246,45 +246,45 @@ create policy "owners_and_admins_can_review_requests"
     public.is_admin()
     or exists (
       select 1 from public.equipment e
-      where e.id = equipment_id and e.owner_id = auth.uid()
+      where e.id = equipment_id and e.owner_id = auth.uid()::text
     )
   )
   with check (
     public.is_admin()
     or exists (
       select 1 from public.equipment e
-      where e.id = equipment_id and e.owner_id = auth.uid()
+      where e.id = equipment_id and e.owner_id = auth.uid()::text
     )
   );
 
 create policy "notifications_are_viewable_by_owner"
   on public.notifications
   for select
-  using (auth.uid() = user_id);
+  using (auth.uid()::text = user_id);
 
 create policy "notifications_can_be_updated_by_owner"
   on public.notifications
   for update
-  using (auth.uid() = user_id);
+  using (auth.uid()::text = user_id);
 
 create policy "notifications_can_be_deleted_by_owner"
   on public.notifications
   for delete
-  using (auth.uid() = user_id);
+  using (auth.uid()::text = user_id);
 
 create policy "lending_is_visible_to_related_users"
   on public.lending
   for select
-  using (borrower_id = auth.uid() or lender_id = auth.uid() or public.is_admin());
+  using (borrower_id = auth.uid()::text or lender_id = auth.uid()::text or public.is_admin());
 
 create policy "return_records_are_visible_to_related_users"
   on public.return_record
   for select
   using (
-    borrower_id = auth.uid()
+    borrower_id = auth.uid()::text
     or exists (
       select 1 from public.equipment e
-      where e.id = equipment_id and e.owner_id = auth.uid()
+      where e.id = equipment_id and e.owner_id = auth.uid()::text
     )
     or public.is_admin()
   );
@@ -293,13 +293,13 @@ create policy "borrowers_can_record_their_own_returns"
   on public.return_record
   for insert
   with check (
-    borrower_id = auth.uid()
+    borrower_id = auth.uid()::text
     and exists (
       select 1 from public.lending l
       where l.id = lending_id
         and l.borrowing_request_id = return_record.borrowing_request_id
         and l.equipment_id = return_record.equipment_id
-        and l.borrower_id = auth.uid()
+        and l.borrower_id = auth.uid()::text
         and l.status = 'Borrowed'
     )
   );
@@ -307,18 +307,18 @@ create policy "borrowers_can_record_their_own_returns"
 create policy "disputes_are_visible_to_participants_or_admins"
   on public.dispute
   for select
-  using (reporter_id = auth.uid() or against_user_id = auth.uid() or public.is_admin());
+  using (reporter_id = auth.uid()::text or against_user_id = auth.uid()::text or public.is_admin());
 
 create policy "participants_can_report_disputes"
   on public.dispute
   for insert
   with check (
-    reporter_id = auth.uid()
+    reporter_id = auth.uid()::text
     and exists (
       select 1 from public.borrowing_requests br
       left join public.equipment e on e.id = br.equipment_id
       where br.id = borrowing_request_id
-        and (br.borrower_id = auth.uid() or e.owner_id = auth.uid())
+        and (br.borrower_id = auth.uid()::text or e.owner_id = auth.uid()::text)
     )
   );
 
@@ -482,7 +482,7 @@ begin
   if tg_op <> 'DELETE' then new_row := to_jsonb(new); end if;
   insert into public.audit_log (actor_id, action, table_name, record_id, old_data, new_data)
   values (
-    auth.uid(), tg_op, tg_table_name,
+    auth.uid()::text, tg_op, tg_table_name,
     coalesce(new_row ->> 'id', old_row ->> 'id'),
     old_row, new_row
   );
@@ -551,3 +551,4 @@ $$;
 
 revoke all on function public.create_notification(uuid, public.notification_type, text) from public;
 grant execute on function public.create_notification(uuid, public.notification_type, text) to service_role;
+

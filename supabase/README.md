@@ -13,6 +13,18 @@ VITE_SUPABASE_ANON_KEY=your-supabase-publishable-or-anon-key
 
 Never put a service-role key or database password in a `VITE_` variable. `.env` is ignored by Git; `.env.example` should contain placeholders only.
 
+## EmailJS notification automation
+
+Create an EmailJS service and template, then add these public values to `.env`:
+
+```dotenv
+VITE_EMAILJS_SERVICE_ID=your-emailjs-service-id
+VITE_EMAILJS_TEMPLATE_ID=your-emailjs-template-id
+VITE_EMAILJS_PUBLIC_KEY=your-emailjs-public-key
+```
+
+Configure the EmailJS template to use `{{to_email}}`, `{{notification_type}}`, and `{{message}}`. The application processes pending notification deliveries once when a user opens the workspace and every minute while the workspace remains open. Only public EmailJS credentials should be stored in frontend variables; never place a private or service secret in `VITE_` variables.
+
 ## Deploy the database
 
 Run from the repository root. `supabase login` opens a browser for the access token; `db push` may prompt for the database password in the terminal. Do not share either secret in chat or put it in `.env`.
