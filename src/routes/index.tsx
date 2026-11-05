@@ -34,6 +34,9 @@ function RouteFallback() {
 function PublicOnly({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, profile } = useAuth()
   if (isLoading) return <LoadingSpinner />
+  if (isAuthenticated && profile && (!profile.is_activated || profile.activation_status !== 'Approved')) {
+    return <Navigate to="/login" replace />
+  }
   if (isAuthenticated) return <Navigate to={redirectByRole(profile?.role)} replace />
   return children
 }

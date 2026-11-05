@@ -41,7 +41,7 @@ export function useBorrowRequests() {
       const profileIds = [...new Set(requestRows.map((request) => request.borrower_id))]
       const [equipmentResult, profilesResult] = await Promise.all([
         equipmentIds.length
-          ? supabase.from('equipment').select('id, name').in('id', equipmentIds)
+          ? supabase.from('equipment').select('id, name, owner_id').in('id', equipmentIds)
           : Promise.resolve({ data: [], error: null }),
         profileIds.length
           ? supabase.from('profiles').select('id, full_name').in('id', profileIds)
@@ -50,10 +50,12 @@ export function useBorrowRequests() {
       if (equipmentResult.error) throw equipmentResult.error
       if (profilesResult.error) throw profilesResult.error
       const equipmentNames = new Map((equipmentResult.data ?? []).map((item) => [item.id, item.name]))
+      const equipmentOwners = new Map((equipmentResult.data ?? []).map((item) => [item.id, item.owner_id]))
       const borrowerNames = new Map((profilesResult.data ?? []).map((profileRow) => [profileRow.id, profileRow.full_name]))
       return requestRows.map((request) => ({
         ...request,
         equipment_name: equipmentNames.get(request.equipment_id) ?? request.equipment_id,
+        equipment_owner_id: equipmentOwners.get(request.equipment_id) ?? request.lender_id ?? null,
         borrower_name: borrowerNames.get(request.borrower_id) ?? request.borrower_id,
       }))
     },

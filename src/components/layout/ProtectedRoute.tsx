@@ -18,6 +18,9 @@ export function ProtectedRoute({ allowedRoles, children }: { allowedRoles?: User
   if (isLoading) return <LoadingSpinner />
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (!profile) return <div className="flex min-h-screen items-center justify-center px-5 text-sm text-zinc-600">Your profile could not be loaded. Please refresh or sign in again.</div>
+  if (!profile.is_activated || profile.activation_status !== 'Approved') {
+    return <Navigate to="/login" replace />
+  }
   if (roleDenied) return <Navigate to={redirectByRole(profile.role)} replace />
   return children ?? <Outlet />
 }

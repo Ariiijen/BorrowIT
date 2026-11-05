@@ -20,10 +20,32 @@ export function NotificationsPage() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', 'mine', user?.id] }),
   })
+  const markAllRead = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('Sign in to update notifications.')
+      const { error: updateError } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+      if (updateError) throw updateError
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', 'mine', user?.id] }),
+  })
 
   return (
     <div className="space-y-8">
       <PageHeader eyebrow="Your account" title="Notifications" description="Request updates and reminders addressed to you." />
+      <div className="flex justify-end">
+        <button
+          type="button"
+          disabled={markAllRead.isPending || !data?.some((item) => !item.is_read)}
+          onClick={() => markAllRead.mutate()}
+          className="min-h-10 rounded-lg border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          {markAllRead.isPending ? 'Marking...' : 'Mark all as read'}
+        </button>
+      </div>
       {error && <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">Could not load notifications: {error.message}</p>}
       <div className="divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
         {isLoading ? <div className="space-y-5 py-5">{[0, 1, 2].map((row) => <div key={row} className="flex items-center gap-4"><Skeleton className="h-9 w-9 rounded-full" /><div className="flex-1"><Skeleton className="h-4 w-3/4" /><Skeleton className="mt-2 h-3 w-32" /></div></div>)}</div> : data?.length ? data.map((item) => <article key={item.id} className="flex items-start gap-4 rounded-xl px-3 py-5 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/70">

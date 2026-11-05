@@ -33,7 +33,10 @@ export function useGoogleLogin() {
           await signOut(auth)
           throw new Error(existing.rejection_reason || 'Your account registration was rejected.')
         }
-        if (existing && !existing.is_activated) {
+        if (
+          existing &&
+          (!existing.is_activated || existing.activation_status !== 'Approved')
+        ) {
           await signOut(auth)
           throw new Error('Your account is waiting for admin activation. Please check back later.')
         }

@@ -108,6 +108,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const nextProfile = await readOrCreateProfile(currentUser)
         if (!active) return
+
+        if (!nextProfile.is_activated || nextProfile.activation_status !== 'Approved') {
+          await firebaseSignOut(auth)
+          setUser(null)
+          setProfile(null)
+          setIsLoading(false)
+          queryClient.clear()
+          return
+        }
+
         if (previousRole.current && previousRole.current !== nextProfile.role) queryClient.clear()
         previousRole.current = nextProfile.role
         setProfile(nextProfile)

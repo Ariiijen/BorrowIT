@@ -21,6 +21,14 @@ export function useMyNotifications() {
       }, () => {
         void queryClient.invalidateQueries({ queryKey: ['notifications', 'mine', user.id] })
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        void queryClient.invalidateQueries({ queryKey: ['notifications', 'mine', user.id] })
+      })
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
   }, [queryClient, user?.id])

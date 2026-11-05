@@ -378,6 +378,7 @@ export type Database = {
       request_rental_extension: { Args: { p_request_id: string; p_requested_due_date: string; p_reason?: string | null }; Returns: unknown }
       review_rental_extension: { Args: { p_extension_id: string; p_approve: boolean }; Returns: unknown }
       process_late_returns: { Args: Record<PropertyKey, never>; Returns: number }
+      process_overdue_rentals: { Args: Record<PropertyKey, never>; Returns: number }
       process_due_notifications: { Args: Record<PropertyKey, never>; Returns: number }
       process_expired_requests: { Args: Record<PropertyKey, never>; Returns: number }
       create_notification: {
