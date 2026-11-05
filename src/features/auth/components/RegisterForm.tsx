@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/Input'
 import { useEmailRegister } from '../hooks/useEmailRegister'
 import { emailRegisterSchema } from '../validators'
 import { GoogleButton } from './GoogleButton'
-import { redirectByRole } from '../utils/redirectByRole'
 
 type RegisterValues = z.infer<typeof emailRegisterSchema>
 
@@ -31,6 +30,7 @@ export function RegisterForm() {
     defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', role: 'Borrower', studentNumber: '', employeeNumber: '', acceptedTerms: false },
   })
   const password = useWatch({ control: form.control, name: 'password' })
+  const selectedRole = useWatch({ control: form.control, name: 'role' })
   const strength = passwordLevel(password)
   const strengthLabel = ['Too short', 'Weak', 'Fair', 'Strong', 'Strong'][strength]
 
@@ -44,13 +44,9 @@ export function RegisterForm() {
         studentNumber: values.studentNumber,
         employeeNumber: values.employeeNumber,
       })
-      if (result.session) {
-        toast.success('Your account is ready.')
-        navigate(redirectByRole(values.role), { replace: true })
-      } else {
-        toast.success('Check your email to verify your account before logging in.')
-        navigate('/login', { replace: true })
-      }
+      void result
+      toast.success('Account created. Wait for admin activation before logging in.')
+      navigate('/login', { replace: true })
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to create your account.')
     }
@@ -58,7 +54,38 @@ export function RegisterForm() {
 
   return (
     <div>
-      <GoogleButton label="Continue with Google" />
+      <div className="mb-3 grid gap-3 sm:grid-cols-2">
+        <label className="block space-y-1.5 text-sm">
+          <span className="font-medium">Account type</span>
+          <select {...form.register('role')} className="h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:border-zinc-800 dark:bg-zinc-950">
+            <option value="Borrower">Borrower</option>
+            <option value="Lender">Lender</option>
+            <option value="Faculty">Faculty</option>
+          </select>
+        </label>
+        <label className="block space-y-1.5 text-sm">
+          <span className="font-medium">{selectedRole === 'Faculty' ? 'Employee number' : 'Student number'}</span>
+          <Input
+            {...form.register(selectedRole === 'Faculty' ? 'employeeNumber' : 'studentNumber')}
+            required
+          />
+          {(selectedRole === 'Faculty'
+            ? form.formState.errors.employeeNumber
+            : form.formState.errors.studentNumber) && (
+            <span className="block text-sm text-red-600">
+              {selectedRole === 'Faculty'
+                ? form.formState.errors.employeeNumber?.message
+                : form.formState.errors.studentNumber?.message}
+            </span>
+          )}
+        </label>
+      </div>
+      <GoogleButton
+        label="Continue with Google"
+        role={selectedRole}
+        studentNumber={form.watch('studentNumber')}
+        employeeNumber={form.watch('employeeNumber')}
+      />
       <div className="my-4 flex items-center gap-3 text-xs text-zinc-500">
         <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />or sign up with email<span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
       </div>
@@ -73,13 +100,6 @@ export function RegisterForm() {
           <span className="text-sm font-medium">Email</span>
           <Input type="email" autoComplete="email" placeholder="name@ustp.edu.ph" {...form.register('email')} />
           {form.formState.errors.email && <span className="block text-sm text-red-600">{form.formState.errors.email.message}</span>}
-        </label>
-        </div>
-        <div className="space-y-3 sm:col-span-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
-        <label className="block space-y-1.5 sm:col-span-2">
-          <span className="text-sm font-medium">Student number</span>
-          <Input autoComplete="off" {...form.register('studentNumber')} />
-          {form.formState.errors.studentNumber && <span className="block text-sm text-red-600">{form.formState.errors.studentNumber.message}</span>}
         </label>
         </div>
         <div className="space-y-3 sm:col-span-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
@@ -118,9 +138,10 @@ export function RegisterForm() {
           {registerAccount.isPending ? 'Creating account...' : 'Create account'}
         </Button>
       </form>
-      <p className="mt-4 border-t border-zinc-100 pt-4 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
-        Already have an account? <Link to="/login" className="rounded-sm font-semibold text-zinc-700 transition-colors hover:text-pink-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:text-zinc-300 dark:hover:text-pink-300">Log in</Link>
-      </p>
+      <div className="mt-4 space-y-2 border-t border-zinc-100 pt-4 text-center text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+        <p>Already have an account? <Link to="/login" className="rounded-sm font-semibold text-zinc-700 transition-colors hover:text-pink-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:text-zinc-300 dark:hover:text-pink-300">Log in</Link></p>
+        <p><Link to="/admin/register" className="rounded-sm font-medium text-pink-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:text-pink-300">Create the first administrator account</Link></p>
+      </div>
     </div>
   )
 }

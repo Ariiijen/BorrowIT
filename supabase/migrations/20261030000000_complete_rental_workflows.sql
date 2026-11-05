@@ -1,0 +1,2 @@
+-- This migration is intentionally a no-op.
+-- The base schema is deployed by 20260928000000_initial_schema.sql.

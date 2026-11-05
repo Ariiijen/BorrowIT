@@ -1,15 +1,18 @@
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 
 export function useBorrowRequests() {
   const { user, profile } = useAuth()
-  return useQuery({
+  const queryClient = useQueryClient()
+  const query = useQuery({
     queryKey: ['borrowings', 'visible', user?.id, profile?.role],
     enabled: !!user && !!profile,
     queryFn: async () => {
       if (!user || !profile) return []
+      let requests
       if (profile.role === 'Lender') {
         const { data: equipment, error: equipmentError } = await supabase
           .from('equipment')
@@ -24,18 +27,50 @@ export function useBorrowRequests() {
           .in('equipment_id', equipmentIds)
           .order('requested_at', { ascending: false })
         if (error) throw error
-        return data
+        requests = data
+      } else {
+        let query = supabase.from('borrowing_requests').select('*').order('requested_at', { ascending: false })
+        if (profile.role !== 'Admin') query = query.eq('borrower_id', user.id)
+        const { data, error } = await query
+        if (error) throw error
+        requests = data
       }
 
-      let query = supabase.from('borrowing_requests').select('*').order('requested_at', { ascending: false })
-      if (profile.role !== 'Admin') query = query.eq('borrower_id', user.id)
-      const { data, error } = await query
-
-      if (error) {
-        throw error
-      }
-
-      return data
+      const requestRows = requests ?? []
+      const equipmentIds = [...new Set(requestRows.map((request) => request.equipment_id))]
+      const profileIds = [...new Set(requestRows.map((request) => request.borrower_id))]
+      const [equipmentResult, profilesResult] = await Promise.all([
+        equipmentIds.length
+          ? supabase.from('equipment').select('id, name').in('id', equipmentIds)
+          : Promise.resolve({ data: [], error: null }),
+        profileIds.length
+          ? supabase.from('profiles').select('id, full_name').in('id', profileIds)
+          : Promise.resolve({ data: [], error: null }),
+      ])
+      if (equipmentResult.error) throw equipmentResult.error
+      if (profilesResult.error) throw profilesResult.error
+      const equipmentNames = new Map((equipmentResult.data ?? []).map((item) => [item.id, item.name]))
+      const borrowerNames = new Map((profilesResult.data ?? []).map((profileRow) => [profileRow.id, profileRow.full_name]))
+      return requestRows.map((request) => ({
+        ...request,
+        equipment_name: equipmentNames.get(request.equipment_id) ?? request.equipment_id,
+        borrower_name: borrowerNames.get(request.borrower_id) ?? request.borrower_id,
+      }))
     },
   })
+
+  useEffect(() => {
+    if (!user) return
+    const channel = supabase
+      .channel(`rental-updates-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'borrowing_requests' }, () => {
+        void queryClient.invalidateQueries({ queryKey: ['borrowings'] })
+        void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        void queryClient.invalidateQueries({ queryKey: ['equipment'] })
+      })
+      .subscribe()
+    return () => { void supabase.removeChannel(channel) }
+  }, [queryClient, user])
+
+  return query
 }

@@ -22,21 +22,21 @@ export function useEmailLogin() {
           credentials.password,
         )
 
-        // Force a fresh token so it includes the "authenticated" role claim.
-        const token = await user.getIdTokenResult(true)
-        if (token.claims.role !== 'authenticated') {
-          await signOut(auth)
-          throw new Error(
-            'Your account is not activated yet. Please ask the admin to activate it, then log in again.',
-          )
-        }
-
         const { data: existing, error: selectError } = await supabase
           .from('profiles')
-          .select('role')
-          .eq('id', user.uid)
+          .select('id, role, is_activated, activation_status, rejection_reason')
+          .eq('email', credentials.email)
           .maybeSingle()
         if (selectError) throw selectError
+
+        if (existing && existing.activation_status === 'Rejected') {
+          await signOut(auth)
+          throw new Error(existing.rejection_reason || 'Your account registration was rejected.')
+        }
+        if (existing && !existing.is_activated) {
+          await signOut(auth)
+          throw new Error('Your account is waiting for admin activation. Please check back later.')
+        }
 
         let role = existing?.role as Role | undefined
 
@@ -51,13 +51,16 @@ export function useEmailLogin() {
             email: pending?.email ?? user.email ?? credentials.email,
             full_name: pending?.fullName ?? user.displayName ?? user.email,
             role: newRole,
+            is_activated: false,
+            activation_status: 'Pending',
             student_number: pending?.studentNumber ?? null,
             employee_number: pending?.employeeNumber ?? null,
           })
           if (insertError) throw insertError
 
           clearPendingProfile(user.uid)
-          role = newRole
+          await signOut(auth)
+          throw new Error('Your account was created and is waiting for admin activation.')
         }
 
         return { user, role: (role ?? 'Borrower') as Role }

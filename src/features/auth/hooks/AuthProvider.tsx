@@ -20,11 +20,10 @@ import type { UserRole } from '@/types'
 import { AuthContext, type Profile, type SessionUser } from './authContext'
 
 async function readOrCreateProfile(user: SessionUser): Promise<Profile> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
+  const profileQuery = user.email
+    ? supabase.from('profiles').select('*').eq('email', user.email).maybeSingle()
+    : supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
+  const { data, error } = await profileQuery
 
   if (error) throw error
   if (data) return data
@@ -40,6 +39,8 @@ async function readOrCreateProfile(user: SessionUser): Promise<Profile> {
       email: pending?.email ?? user.email ?? '',
       full_name: pending?.fullName ?? user.displayName ?? user.email ?? '',
       role,
+      is_activated: false,
+      activation_status: 'Pending',
       student_number: pending?.studentNumber ?? null,
       employee_number: pending?.employeeNumber ?? null,
     })

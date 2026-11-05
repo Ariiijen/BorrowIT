@@ -11,6 +11,7 @@ import { LandingPage } from '@/features/landing/pages/LandingPage'
 const AppLayout = lazy(() => import('@/components/layout/AppLayout').then((module) => ({ default: module.AppLayout })))
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage })))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').then((module) => ({ default: module.RegisterPage })))
+const AdminRegisterPage = lazy(() => import('@/features/auth/pages/AdminRegisterPage').then((module) => ({ default: module.AdminRegisterPage })))
 const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })))
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const LenderDashboard = lazy(() => import('@/features/dashboard/pages/LenderDashboard').then((module) => ({ default: module.LenderDashboard })))
@@ -20,6 +21,8 @@ const RequestsPage = lazy(() => import('@/features/borrowing/RequestsPage').then
 const HistoryPage = lazy(() => import('@/features/borrowing/HistoryPage').then((module) => ({ default: module.HistoryPage })))
 const DisputesPage = lazy(() => import('@/features/disputes/DisputesPage').then((module) => ({ default: module.DisputesPage })))
 const EquipmentPage = lazy(() => import('@/features/equipment/EquipmentPage').then((module) => ({ default: module.EquipmentPage })))
+const MyListingsPage = lazy(() => import('@/features/equipment/MyListingsPage').then((module) => ({ default: module.MyListingsPage })))
+const EquipmentApprovalPage = lazy(() => import('@/features/equipment/EquipmentApprovalPage').then((module) => ({ default: module.EquipmentApprovalPage })))
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage').then((module) => ({ default: module.NotificationsPage })))
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
@@ -46,6 +49,7 @@ export function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><RegisterPage /></PublicOnly>} />
+      <Route path="/admin/register" element={<PublicOnly><AdminRegisterPage /></PublicOnly>} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route element={<WorkspaceLayout />}>
         <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['Borrower', 'Faculty']}><DashboardPage /></ProtectedRoute>} />
@@ -53,6 +57,8 @@ export function AppRoutes() {
         <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['Admin']}><UsersPage /></ProtectedRoute>} />
         <Route path="/equipment" element={<EquipmentPage />} />
+        <Route path="/admin/equipment-approvals" element={<ProtectedRoute allowedRoles={['Admin']}><EquipmentApprovalPage /></ProtectedRoute>} />
+        <Route path="/lender/listings" element={<ProtectedRoute allowedRoles={['Lender']}><MyListingsPage /></ProtectedRoute>} />
         <Route path="/requests" element={<RequestsPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/reports" element={<ProtectedRoute allowedRoles={['Admin']}><ReportsPage /></ProtectedRoute>} />

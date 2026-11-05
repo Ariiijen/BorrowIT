@@ -18,19 +18,12 @@ export function useCreateBorrowRequest() {
         throw new Error('You must be signed in to request equipment.')
       }
 
-      const { data, error } = await supabase
-        .from('borrowing_requests')
-        .insert({
-          equipment_id: input.equipment_id,
-          borrower_id: user.id,
-          start_date: input.requested_from,
-          end_date: input.requested_to,
-          notes: input.notes || '',
-          status: 'Pending',
-        })
-        .select()
-        .single()
-
+      const { data, error } = await supabase.rpc('create_borrow_request', {
+        p_equipment_id: input.equipment_id,
+        p_start_date: input.requested_from,
+        p_end_date: input.requested_to,
+        p_notes: input.notes || null,
+      })
       if (error) {
         throw error
       }

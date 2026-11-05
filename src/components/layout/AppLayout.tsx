@@ -1,10 +1,11 @@
-import { Bell, BookOpenCheck, ClipboardList, FileBarChart2, LayoutDashboard, Laptop, LogOut, Menu, Shield, Users, X } from 'lucide-react'
+import { Bell, BookOpenCheck, ClipboardList, FileBarChart2, LayoutDashboard, Laptop, LogOut, Menu, Shield, Users, X, PackageCheck } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useEmailNotifications } from '@/features/notifications/hooks/useEmailNotifications'
 import type { UserRole } from '@/types'
 
 const navigation: Record<UserRole, { label: string; to: string; icon: typeof LayoutDashboard }[]> = {
@@ -24,7 +25,8 @@ const navigation: Record<UserRole, { label: string; to: string; icon: typeof Lay
   ],
   Lender: [
     { label: 'Dashboard', to: '/lender/dashboard', icon: LayoutDashboard },
-    { label: 'My listings', to: '/equipment', icon: Laptop },
+    { label: 'Browse equipment', to: '/equipment', icon: Laptop },
+    { label: 'My listings', to: '/lender/listings', icon: BookOpenCheck },
     { label: 'Incoming requests', to: '/requests', icon: ClipboardList },
     { label: 'Track lent items', to: '/lender/dashboard#lent', icon: BookOpenCheck },
     { label: 'History', to: '/history', icon: ClipboardList },
@@ -33,6 +35,7 @@ const navigation: Record<UserRole, { label: string; to: string; icon: typeof Lay
   Admin: [
     { label: 'Dashboard', to: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Manage equipment', to: '/equipment', icon: Laptop },
+    { label: 'Equipment approvals', to: '/admin/equipment-approvals', icon: PackageCheck },
     { label: 'Manage users', to: '/admin/users', icon: Users },
     { label: 'Approve requests', to: '/requests', icon: ClipboardList },
     { label: 'Disputes', to: '/disputes', icon: Shield },
@@ -49,9 +52,15 @@ function NavItems({ items, close }: { items: (typeof navigation)[UserRole]; clos
 
 export function AppLayout() {
   const { profile, signOut } = useAuth()
+  useEmailNotifications()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const items = navigation[profile?.role ?? 'Borrower']
+  const homePath = profile?.role === 'Admin'
+    ? '/admin/dashboard'
+    : profile?.role === 'Lender'
+      ? '/lender/dashboard'
+      : '/dashboard'
 
   async function handleSignOut() {
     try {
@@ -66,7 +75,7 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-zinc-200 bg-white px-4 py-5 dark:border-zinc-800 dark:bg-zinc-950 lg:flex">
-        <div className="mb-9 px-3"><a href="/dashboard" className="text-lg font-bold tracking-tight">Borrow<span className="text-pink-700 dark:text-pink-400">IT</span></a><p className="mt-1 text-xs text-zinc-500">Equipment services · USTP</p></div>
+        <div className="mb-9 px-3"><NavLink to={homePath} className="text-lg font-bold tracking-tight">Borrow<span className="text-pink-700 dark:text-pink-400">IT</span></NavLink><p className="mt-1 text-xs text-zinc-500">Equipment services · USTP</p></div>
         <NavItems items={items} />
         <div className="mt-auto border-t border-zinc-200 pt-4 dark:border-zinc-800">
           <div className="mb-3 px-3"><p className="truncate text-sm font-medium">{profile?.full_name || profile?.email}</p><p className="mt-0.5 text-xs text-zinc-500">{profile?.role}</p></div>

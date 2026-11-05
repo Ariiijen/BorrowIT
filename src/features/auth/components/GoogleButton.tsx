@@ -3,12 +3,22 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { useGoogleLogin } from '../hooks/useGoogleLogin'
 
-export function GoogleButton({ label = 'Continue with Google' }: { label?: string }) {
+export function GoogleButton({
+  label = 'Continue with Google',
+  role,
+  studentNumber,
+  employeeNumber,
+}: {
+  label?: string
+  role?: 'Borrower' | 'Lender' | 'Faculty'
+  studentNumber?: string
+  employeeNumber?: string
+}) {
   const login = useGoogleLogin()
 
   async function handleClick() {
     try {
-      await login.mutateAsync()
+      await login.mutateAsync({ role, studentNumber, employeeNumber })
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Google sign-in could not start.')
     }
