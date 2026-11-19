@@ -24,6 +24,7 @@ const EquipmentPage = lazy(() => import('@/features/equipment/EquipmentPage').th
 const MyListingsPage = lazy(() => import('@/features/equipment/MyListingsPage').then((module) => ({ default: module.MyListingsPage })))
 const EquipmentApprovalPage = lazy(() => import('@/features/equipment/EquipmentApprovalPage').then((module) => ({ default: module.EquipmentApprovalPage })))
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage').then((module) => ({ default: module.NotificationsPage })))
+const ProfilePage = lazy(() => import('@/features/profile/ProfilePage').then((module) => ({ default: module.ProfilePage })))
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
 
@@ -66,6 +67,7 @@ export function AppRoutes() {
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/reports" element={<ProtectedRoute allowedRoles={['Admin']}><ReportsPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/disputes" element={<ProtectedRoute allowedRoles={['Admin']}><DisputesPage /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
