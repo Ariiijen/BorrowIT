@@ -21,6 +21,7 @@ const HistoryPage = lazy(() => import('@/features/borrowing/HistoryPage').then((
 const DisputesPage = lazy(() => import('@/features/disputes/DisputesPage').then((module) => ({ default: module.DisputesPage })))
 const EquipmentPage = lazy(() => import('@/features/equipment/EquipmentPage').then((module) => ({ default: module.EquipmentPage })))
 const NotificationsPage = lazy(() => import('@/features/notifications/NotificationsPage').then((module) => ({ default: module.NotificationsPage })))
+const ProfilePage = lazy(() => import('@/features/profile/ProfilePage').then((module) => ({ default: module.ProfilePage })))
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
 
@@ -57,6 +58,7 @@ export function AppRoutes() {
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/reports" element={<ProtectedRoute allowedRoles={['Admin']}><ReportsPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/disputes" element={<ProtectedRoute allowedRoles={['Admin']}><DisputesPage /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
